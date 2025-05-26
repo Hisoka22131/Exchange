@@ -1,0 +1,53 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <InvariantGlobalization>true</InvariantGlobalization>
+        <UserSecretsId>066d07a6-61bd-4d08-ada2-c596a93a0b36</UserSecretsId>
+        <Version>1.1.0</Version>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Blazored.SessionStorage" Version="2.4.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.12" />
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.1"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.11">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="MudBlazor" Version="8.0.0" />
+        <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="7.1.0" />
+        <PackageReference Include="Blazored.Toast" Version="4.2.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Exchange.CoinMarketCap\Exchange.CoinMarketCap.csproj" />
+        <ProjectReference Include="..\Exchange.Core\Exchange.Core.csproj" />
+        <ProjectReference Include="..\Exchange.Database\Exchange.Database.csproj" />
+        <ProjectReference Include="..\Exchange.Excel\Exchange.Excel.csproj" />
+        <ProjectReference Include="..\Exchange.TelegramBot\Exchange.TelegramBot.csproj" />
+        <ProjectReference Include="..\Exchange.Blockchains\Exchange.Blockchains.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <AdditionalFiles Include="Blazor\Components\App.razor" />
+      <AdditionalFiles Include="Blazor\Components\Layout\MainLayout.razor" />
+      <AdditionalFiles Include="Blazor\Components\Layout\NavMenu.razor" />
+      <AdditionalFiles Include="Blazor\Components\Pages\Error.razor" />
+      <AdditionalFiles Include="Blazor\Components\Pages\Home.razor" />
+      <AdditionalFiles Include="Blazor\Components\Pages\Login\Login.razor" />
+      <AdditionalFiles Include="Blazor\Components\Pages\Transactions\Transactions.razor" />
+      <AdditionalFiles Include="Blazor\Components\Pages\Users\Users.razor" />
+      <AdditionalFiles Include="Blazor\Components\Routes.razor" />
+      <AdditionalFiles Include="Blazor\Components\_Imports.razor" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Endpoints\Public\Users\" />
+    </ItemGroup>
+
+</Project>

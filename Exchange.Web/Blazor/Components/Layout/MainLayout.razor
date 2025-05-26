@@ -1,0 +1,59 @@
+﻿@inherits LayoutComponentBase
+
+@using Microsoft.AspNetCore.Components.Authorization
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu/>
+    </div>
+
+    <main>
+        <div class="top-row px-4">
+            <AuthorizeView>
+                <Authorized>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" href="/logout">
+                        Выйти
+                    </MudButton>
+                </Authorized>
+                <NotAuthorized>
+                    <MudButton Variant="Variant.Filled" Color="Color.Secondary" href="/login">
+                        Войти
+                    </MudButton>
+                </NotAuthorized>
+            </AuthorizeView>
+        </div>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+
+<BlazoredToasts/>
+<MudThemeProvider />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<div id="blazor-error-ui">
+    Произошла ошибка.
+    <a href="" class="reload">Перезагрузить</a>
+    <a class="dismiss">🗙</a>
+</div>
+
+<style>
+    #blazor-error-ui {
+        color: black;
+    }
+
+    #blazor-error-ui .dismiss {
+        color: red;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    #blazor-error-ui .dismiss:hover {
+        color: darkred;
+        cursor: pointer;
+    }
+</style>

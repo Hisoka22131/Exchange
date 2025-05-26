@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Exchange.Common\Exchange.Common.csproj" />
+      <ProjectReference Include="..\Exchange.Core\Exchange.Core.csproj" />
+      <ProjectReference Include="..\Exchange.Domain\Exchange.Domain.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="NBitcoin" Version="7.0.46" />
+      <PackageReference Include="NBitcoin.Altcoins" Version="3.0.31" />
+      <PackageReference Include="Nethereum.Web3" Version="4.27.1" />
+      <PackageReference Include="TronSharp" Version="1.0.5" />
+    </ItemGroup>
+
+</Project>

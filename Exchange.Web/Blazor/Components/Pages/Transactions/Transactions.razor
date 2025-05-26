@@ -1,0 +1,238 @@
+﻿@page "/transactions"
+
+@using Exchange.Domain.Enums
+@using Exchange.Excel
+@using Exchange.Web.Blazor.Helper
+@using Exchange.Web.Blazor.Services.Transactions
+@using Exchange.Web.Blazor.Services.Transactions.Dto
+
+@attribute [StreamRendering]
+
+@inject IToastService ToastService
+@inject TransactionsService TransactionsService
+@inject IJSRuntime JsRuntime
+
+<PageTitle>Транзакции</PageTitle>
+
+<MudBreadcrumbs Items="_items"></MudBreadcrumbs>
+
+<h1>Транзакции</h1>
+
+<MudPaper Class="pa-4 mb-4">
+    <MudGrid>
+        <MudItem xs="12" md="4">
+            <MudTextField Label="Идентификатор пользователя" @bind-Value="_filter.UserId" Variant="Variant.Text" Immediate="true"/>
+        </MudItem>
+        <MudItem xs="12" md="4">
+            <MudTextField Label="Идентификатор транзакции" @bind-Value="_filter.TransactionId" Variant="Variant.Text"
+                          Immediate="true"/>
+        </MudItem>
+        <MudItem xs="12" md="3">
+            <MudSelect T="TransactionState" Clearable="true" Label="Статус" SelectAll="true" MultiSelection="true"
+                       @bind-Value="_transactionState" @bind-SelectedValues="_transactionStatesOptions">
+                @foreach (var state in TransactionHelper.GetValues())
+                {
+                    <MudSelectItem T="TransactionState" Value="@state">@state.ToString()</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="12" md="4">
+            <MudDatePicker Label="Дата создания От" @bind-Date="_filter.CreatedDateFrom" Variant="Variant.Text"/>
+        </MudItem>
+        <MudItem xs="12" md="4">
+            <MudDatePicker Label="Дата создания До" @bind-Date="_filter.CreatedDateTo" Variant="Variant.Text"/>
+        </MudItem>
+        <MudItem xs="12" md="4" Class="d-flex justify-content-between">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ApplyFilter"
+                       StartIcon="@Icons.Material.Filled.Search">
+                Применить
+            </MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="ClearFilter"
+                       StartIcon="@Icons.Material.Filled.Clear">
+                Очистить
+            </MudButton>
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+
+
+<MudPaper Class="pa-4 mb-4">
+    <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="DownloadExcel"
+               StartIcon="@Icons.Material.Filled.Download">
+        Загрузить в Excel
+    </MudButton>
+</MudPaper>
+
+
+<MudTable Dense="true" Hover="true" Striped="true"
+          ServerData="@(new Func<TableState, CancellationToken, Task<TableData<TransactionBlazorDto>>>(FetchTransactions))"
+          @ref="_mudTable" RowsPerPage="15">
+    <HeaderContent>
+        <MudTh>Идентификатор</MudTh>
+        <MudTh>Валюта отправления</MudTh>
+        <MudTh>Сумма отправления</MudTh>
+        <MudTh>Валюта получения</MudTh>
+        <MudTh>Сумма получения</MudTh>
+        <MudTh>Комиссия</MudTh>
+        <MudTh>Статус</MudTh>
+        <MudTh>Дата создания</MudTh>
+    </HeaderContent>
+
+    <RowTemplate>
+        <MudTd DataLabel="ID">
+            <MudLink Href="@($"/transaction/{context.Id}")">@context.Id</MudLink>
+        </MudTd>
+        <MudTd DataLabel="Currency From">@context.CurrencyFrom</MudTd>
+        <MudTd DataLabel="Amount From">@context.AmountFrom.ToString("G29")</MudTd>
+        <MudTd DataLabel="Currency To">@context.CurrencyTo</MudTd>
+        <MudTd DataLabel="Amount To">@context.AmountTo.ToString("G29")</MudTd>
+        <MudTd DataLabel="Commission">@context.Commission.ToString("G29") USDT</MudTd>
+        <MudTd DataLabel="State">
+            <MudChip T="Color" Color="TransactionHelper.GetColor(context.State)">
+                @context.State
+            </MudChip>
+        </MudTd>
+        <MudTd DataLabel="Created At">@context.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</MudTd>
+    </RowTemplate>
+
+    <NoRecordsContent>
+        <MudText>Ничего не найдено</MudText>
+    </NoRecordsContent>
+
+    <LoadingContent>
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
+    </LoadingContent>
+
+    <PagerContent>
+        <MudTablePager></MudTablePager>
+    </PagerContent>
+</MudTable>
+
+@code {
+
+    private readonly List<BreadcrumbItem> _items =
+    [
+        new("Транзакции", href: null, disabled: true)
+    ];
+    
+    private IEnumerable<TransactionBlazorDto>? _transactionsForExcel;
+    private MudTable<TransactionBlazorDto> _mudTable = null!;
+
+    private TransactionState _transactionState;
+    private IEnumerable<TransactionState> _transactionStatesOptions { get; set; } = new HashSet<TransactionState>();
+
+    private FilterModel _filter = new();
+
+    private async Task ApplyFilter()
+    {
+        await _mudTable.ReloadServerData();
+        StateHasChanged();
+    }
+
+    private async Task ClearFilter()
+    {
+        _filter = new FilterModel();
+        _transactionStatesOptions = new HashSet<TransactionState>();
+
+        await _mudTable.ReloadServerData();
+        StateHasChanged();
+    }
+
+    private async Task<TableData<TransactionBlazorDto>> FetchTransactions(TableState state, CancellationToken cancellationToken)
+    {
+        var response = new TableData<TransactionBlazorDto>();
+
+        try
+        {
+            var count = state.PageSize;
+            var offset = state.PageSize * state.Page;
+
+            var query = new TransactionBlazorQueryDto
+            {
+                Count = count,
+                Offset = offset,
+                UserId = Guid.TryParse(_filter.UserId, out var userId) ? userId : null,
+                TransactionId = Guid.TryParse(_filter.TransactionId, out var transactionId) ? transactionId : null,
+                States = _transactionStatesOptions,
+                CreatedDateFrom = _filter.CreatedDateFrom,
+                CreatedDateTo = _filter.CreatedDateTo
+            };
+
+            var transactionsResponse = await TransactionsService.GetTransactionsAsync(query, cancellationToken);
+
+            if (transactionsResponse is null)
+            {
+                ToastService.ShowError("Failed to fetch transactions.");
+                response.Items = Array.Empty<TransactionBlazorDto>();
+                return response;
+            }
+
+            if (!transactionsResponse.Ok)
+            {
+                ToastService.ShowError($"Failed to fetch transactions: {transactionsResponse.Errors.First().ErrorMessage}");
+                response.Items = Array.Empty<TransactionBlazorDto>();
+                return response;
+            }
+
+            _transactionsForExcel = transactionsResponse.Result.Items;
+            response.Items = transactionsResponse.Result.Items;
+            response.TotalItems = transactionsResponse.Result.TotalCount;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching transactions: {ex.Message}");
+            response.Items = Array.Empty<TransactionBlazorDto>();
+            ToastService.ShowError($"Error fetching transactions: {ex.Message}");
+        }
+
+        return response;
+    }
+
+    private async Task DownloadExcel()
+    {
+        if (_transactionsForExcel is null || !_transactionsForExcel.Any())
+        {
+            ToastService.ShowWarning("No transactions to export.");
+            return;
+        }
+
+        try
+        {
+            var excelData = ExcelHelper.CreateExcelFile(_transactionsForExcel);
+
+            var fileName = $"Transactions_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+            var fileStream = new MemoryStream(excelData);
+
+            using var file = new DotNetStreamReference(stream: fileStream);
+            await JsRuntime.InvokeVoidAsync("downloadFileFromStream", fileName, file);
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Error exporting transactions: {ex.Message}");
+        }
+    }
+
+    private class FilterModel
+    {
+        public string? UserId { get; set; }
+        public string? TransactionId { get; set; }
+        public DateTime? CreatedDateFrom { get; set; } = DateTime.Now.AddDays(-30);
+        public DateTime? CreatedDateTo { get; set; } = DateTime.Now.AddDays(1);
+    }
+
+}
+
+<script>
+    window.downloadFileFromStream = async (fileName, contentStreamReference) => {
+        const arrayBuffer = await contentStreamReference.arrayBuffer();
+        const blob = new Blob([arrayBuffer]);
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.download = fileName;
+        anchor.href = url;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(url);
+    };
+</script>

@@ -1,0 +1,130 @@
+﻿@page "/users"
+
+@using Exchange.Web.Blazor.Services.Users
+@using Exchange.Web.Blazor.Services.Users.Dto
+
+@inject UsersService UsersService
+@inject IToastService ToastService
+
+<PageTitle>Пользователи</PageTitle>
+
+<h1>Пользователи</h1>
+<MudPaper Class="pa-4 mb-4">
+    <MudGrid>
+        <MudItem xs="12" md="4">
+            <MudTextField Label="Идентификатор пользователя" @bind-Value="_filter.UserId" Variant="Variant.Text" Immediate="true"/>
+        </MudItem>
+        <MudItem xs="12" md="4">
+            <MudTextField Label="Имя пользователя в телеграм" @bind-Value="_filter.TelegramUserName" Variant="Variant.Text"
+                          Immediate="true"/>
+        </MudItem>
+        <MudItem xs="12" md="3" Class="d-flex justify-content-between">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ApplyFilter"
+                       StartIcon="@Icons.Material.Filled.Search">
+                Применить
+            </MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="ClearFilter"
+                       StartIcon="@Icons.Material.Filled.Clear">
+                Очистить
+            </MudButton>
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+
+
+<MudTable Dense="true" Hover="true" Striped="true"
+          ServerData="@(new Func<TableState,CancellationToken,Task<TableData<UserBlazorDto>>>(FetchUsers))"
+          @ref="_mudTable" RowsPerPage="15">
+    <HeaderContent>
+        <MudTh>Идентификатор пользователя</MudTh>
+        <MudTh>Имя пользователя в телеграм</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="ID">@context.Id</MudTd>
+        <MudTd DataLabel="Telegram Username">@context.TelegramUserName</MudTd>
+    </RowTemplate>
+    <NoRecordsContent>
+        <MudText>Ничего не найдено</MudText>
+    </NoRecordsContent>
+    <LoadingContent>
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
+    </LoadingContent>
+    <PagerContent>
+        <MudTablePager></MudTablePager>
+    </PagerContent>
+</MudTable>
+
+@code {
+    private MudTable<UserBlazorDto> _mudTable = null!;
+
+    private readonly FilterModel _filter = new();
+
+    private async Task ApplyFilter()
+    {
+        await _mudTable.ReloadServerData();
+        StateHasChanged();
+    }
+
+    private async Task ClearFilter()
+    {
+        _filter.Count = null;
+        _filter.Offset = null;
+        _filter.UserId = null;
+        _filter.TelegramUserName = null;
+
+        await _mudTable.ReloadServerData();
+        StateHasChanged();
+    }
+    
+    private async Task<TableData<UserBlazorDto>> FetchUsers(TableState state, CancellationToken cancellationToken)
+    {
+        var response = new TableData<UserBlazorDto>();
+        
+        try
+        {
+            var count = state.PageSize;
+            var offset = state.PageSize * state.Page;
+        
+            var query = new UserBlazorQueryDto
+            {
+                Count = count,
+                Offset = offset,
+                TelegramUserName = string.IsNullOrWhiteSpace(_filter.TelegramUserName) ? null : _filter.TelegramUserName,
+                UserId = Guid.TryParse(_filter.UserId, out var userId) ? userId : null
+            };
+
+            var usersResponse = await UsersService.GetUsersAsync(query, cancellationToken);
+
+            if (usersResponse is null)
+            {
+                ToastService.ShowError("Failed to fetch users.");
+                response.Items = Array.Empty<UserBlazorDto>();
+                return response;
+            }
+
+            if (!usersResponse.Ok)
+            {
+                ToastService.ShowError($"Error fetching users: {usersResponse.Errors.First().ErrorMessage}");
+                return response;
+            }
+
+            response.Items = usersResponse.Result.Items;
+            response.TotalItems = usersResponse.Result.TotalCount;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching users: {ex.Message}");
+            ToastService.ShowError($"Error fetching users: {ex.Message}");
+        }
+
+        return response;
+    }
+
+    private class FilterModel
+    {
+        public int? Count { get; set; }
+        public int? Offset { get; set; }
+        public string? UserId { get; set; }
+        public string? TelegramUserName { get; set; }
+    }
+}

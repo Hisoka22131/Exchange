@@ -1,0 +1,92 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exchange.Core", "Exchange.Core\Exchange.Core.csproj", "{3C705EC4-3523-4DEE-8273-D5A77A4CCD15}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Application", "Application", "{6AAF2004-34D4-4972-8CCA-C75E72033EEE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exchange.Domain", "Exchange.Domain\Exchange.Domain.csproj", "{2819579E-1449-45C2-AFEA-63AC0D534A2E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{1D5C54D0-B6E5-4288-97CD-F0E0DA92EEE7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{62AA9E07-D337-471F-B512-23578ABD7A28}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exchange.Common", "Exchange.Common\Exchange.Common.csproj", "{26DB52E0-B71F-4F35-8256-844D0617987B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exchange.TelegramBot", "Exchange.TelegramBot\Exchange.TelegramBot.csproj", "{E79EE5AD-8B00-409D-AA02-A7285A3F85F0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation", "Presentation", "{77992126-FEF4-43EC-AF5A-F409952DEA0F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exchange.CoinMarketCap", "Exchange.CoinMarketCap\Exchange.CoinMarketCap.csproj", "{B81B78F2-E8CB-444A-82DC-957D5CC46DCC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exchange.Database", "Exchange.Database\Exchange.Database.csproj", "{0BCB3ED5-C7A4-4157-8EA5-9BEA3FEA1845}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E3A74F94-AA48-4694-9AA8-B87A1BE5A5E8}"
+	ProjectSection(SolutionItems) = preProject
+		compose.yaml = compose.yaml
+		Dockerfile = Dockerfile
+		.dockerignore = .dockerignore
+		.env = .env
+		.gitignore = .gitignore
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exchange.Blockchains", "Exchange.Blockchains\Exchange.Blockchains.csproj", "{F5C0375A-8DEF-4A62-80B1-69C638F58BAF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exchange.Web", "Exchange.Web\Exchange.Web.csproj", "{F673B11C-953D-4116-A220-7CEBA727EF0D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exchange.Excel", "Exchange.Excel\Exchange.Excel.csproj", "{A262346F-E8A5-4566-8139-67968EE8A708}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3C705EC4-3523-4DEE-8273-D5A77A4CCD15}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C705EC4-3523-4DEE-8273-D5A77A4CCD15}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C705EC4-3523-4DEE-8273-D5A77A4CCD15}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C705EC4-3523-4DEE-8273-D5A77A4CCD15}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2819579E-1449-45C2-AFEA-63AC0D534A2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2819579E-1449-45C2-AFEA-63AC0D534A2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2819579E-1449-45C2-AFEA-63AC0D534A2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2819579E-1449-45C2-AFEA-63AC0D534A2E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{26DB52E0-B71F-4F35-8256-844D0617987B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{26DB52E0-B71F-4F35-8256-844D0617987B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{26DB52E0-B71F-4F35-8256-844D0617987B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{26DB52E0-B71F-4F35-8256-844D0617987B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E79EE5AD-8B00-409D-AA02-A7285A3F85F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E79EE5AD-8B00-409D-AA02-A7285A3F85F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E79EE5AD-8B00-409D-AA02-A7285A3F85F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E79EE5AD-8B00-409D-AA02-A7285A3F85F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B81B78F2-E8CB-444A-82DC-957D5CC46DCC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B81B78F2-E8CB-444A-82DC-957D5CC46DCC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B81B78F2-E8CB-444A-82DC-957D5CC46DCC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B81B78F2-E8CB-444A-82DC-957D5CC46DCC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0BCB3ED5-C7A4-4157-8EA5-9BEA3FEA1845}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0BCB3ED5-C7A4-4157-8EA5-9BEA3FEA1845}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0BCB3ED5-C7A4-4157-8EA5-9BEA3FEA1845}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0BCB3ED5-C7A4-4157-8EA5-9BEA3FEA1845}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F5C0375A-8DEF-4A62-80B1-69C638F58BAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5C0375A-8DEF-4A62-80B1-69C638F58BAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5C0375A-8DEF-4A62-80B1-69C638F58BAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5C0375A-8DEF-4A62-80B1-69C638F58BAF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F673B11C-953D-4116-A220-7CEBA727EF0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F673B11C-953D-4116-A220-7CEBA727EF0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F673B11C-953D-4116-A220-7CEBA727EF0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F673B11C-953D-4116-A220-7CEBA727EF0D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A262346F-E8A5-4566-8139-67968EE8A708}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A262346F-E8A5-4566-8139-67968EE8A708}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A262346F-E8A5-4566-8139-67968EE8A708}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A262346F-E8A5-4566-8139-67968EE8A708}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3C705EC4-3523-4DEE-8273-D5A77A4CCD15} = {6AAF2004-34D4-4972-8CCA-C75E72033EEE}
+		{2819579E-1449-45C2-AFEA-63AC0D534A2E} = {6AAF2004-34D4-4972-8CCA-C75E72033EEE}
+		{26DB52E0-B71F-4F35-8256-844D0617987B} = {62AA9E07-D337-471F-B512-23578ABD7A28}
+		{E79EE5AD-8B00-409D-AA02-A7285A3F85F0} = {77992126-FEF4-43EC-AF5A-F409952DEA0F}
+		{B81B78F2-E8CB-444A-82DC-957D5CC46DCC} = {1D5C54D0-B6E5-4288-97CD-F0E0DA92EEE7}
+		{0BCB3ED5-C7A4-4157-8EA5-9BEA3FEA1845} = {1D5C54D0-B6E5-4288-97CD-F0E0DA92EEE7}
+		{F5C0375A-8DEF-4A62-80B1-69C638F58BAF} = {1D5C54D0-B6E5-4288-97CD-F0E0DA92EEE7}
+		{F673B11C-953D-4116-A220-7CEBA727EF0D} = {77992126-FEF4-43EC-AF5A-F409952DEA0F}
+		{A262346F-E8A5-4566-8139-67968EE8A708} = {1D5C54D0-B6E5-4288-97CD-F0E0DA92EEE7}
+	EndGlobalSection
+EndGlobal

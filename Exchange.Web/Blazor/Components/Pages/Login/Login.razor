@@ -1,0 +1,85 @@
+﻿@page "/login"
+
+@using Exchange.Web.Blazor.Auth
+@using Exchange.Web.Blazor.Login
+@using Exchange.Web.Blazor.Login.Dto
+@using Microsoft.AspNetCore.Components.Authorization
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+@inject LoginService LoginService
+@inject IToastService ToastService
+
+<h3>Login</h3>
+
+<EditForm Model="@_loginModel" OnValidSubmit="HandleLogin">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <MudGrid>
+        <MudItem xs="12" sm="6">
+            <MudTextField @bind-Value="_loginModel.Username" Label="Логин" Variant="Variant.Text" />
+        </MudItem>
+        <MudItem xs="12" sm="6">
+            <MudTextField @bind-Value="_loginModel.Password" Label="Пароль" Variant="Variant.Text" InputType="InputType.Password" />
+        </MudItem>
+        <MudItem xs="12">
+            <MudButton Type="submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" OnClick="HandleLogin">
+                Войти
+            </MudButton>
+        </MudItem>
+    </MudGrid>
+</EditForm>
+
+@code {
+    private readonly LoginModel _loginModel = new();
+
+    private async Task HandleLogin()
+    {
+        try
+        {
+            var request = new LoginRequestDto
+            {
+                Username = _loginModel.Username,
+                Password = _loginModel.Password
+            };
+            
+            var response = await LoginService.LoginAsync(request);
+
+            if (response is null)
+            {
+                ToastService.ShowError("Failed auth.");
+                return;
+            }
+
+            if (!response.Ok)
+            {
+                ToastService.ShowError($"Failed auth: {response.Errors.First().ErrorMessage}");
+                return;
+            }
+            
+            var token = response.Result.Token;
+            
+            if (!string.IsNullOrEmpty(token))
+            {
+                await ((CustomAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsAuthenticated(token);
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                ToastService.ShowError("JWT is empty.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            ToastService.ShowError(ex.Message);
+        }
+    }
+
+    public class LoginModel
+    {
+        public string Username { get; set; }
+        public string Password { get; set; }
+    }
+}

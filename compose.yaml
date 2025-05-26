@@ -1,0 +1,73 @@
+﻿version: "3.9"
+
+services:
+  exchange.web:
+    image: exchange.web
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5184:8080"
+    container_name: exchange.web
+    depends_on:
+      - exchange.db
+    environment:
+      DOTNET_ENVIRONMENT: Development
+
+      # Cors
+      Cors__AllowedOrigins: ${Cors__AllowedOrigins}
+
+      # TelegramBot
+      TelegramBot__Enabled: ${TelegramBot__Enabled}
+      TelegramBot__Token: ${TelegramBot__Token}
+      TelegramBot__ServerUrl: ${TelegramBot__ServerUrl}
+      TelegramBot__WebAppUrl: ${TelegramBot__WebAppUrl}
+      TelegramBot__AdminChatId: ${TelegramBot__AdminChatId}
+      TelegramBot__TelegramContact: ${TelegramBot__TelegramContact}
+
+      # CoinMarketCap
+      CoinMarketCap__Url: ${CoinMarketCap__Url}
+      CoinMarketCap__Timeout: ${CoinMarketCap__Timeout}
+      CoinMarketCap__ApiKey: ${CoinMarketCap__ApiKey}
+      CoinMarketCap__DelayBetweenReceivingCurrency: ${CoinMarketCap__DelayBetweenReceivingCurrency}
+      CoinMarketCap__DelayBetweenReceivingCredits: ${CoinMarketCap__DelayBetweenReceivingCredits}
+      
+      # AgroPromBank
+      AgroPromBank__Url: ${AgroPromBank__Url}
+      AgroPromBank__Timeout: ${AgroPromBank__Timeout}
+
+      # Database
+      Database__ConnectionString: ${Database__ConnectionString}
+      Database__AutoMigrations: ${Database__AutoMigrations}
+
+      # Auth
+      Auth__Username: ${Auth__Username}
+      Auth__Password: ${Auth__Password}
+      Auth__SecretKey: ${Auth__SecretKey}
+
+      # Blazor
+      Blazor__Url: ${Blazor__Url}
+      Blazor__Timeout: ${Blazor__Timeout}
+      
+      # Phone
+      PHONE__NUMBERS: ${PHONE__NUMBERS}
+      
+      # Percent
+      Percents__Rub__Buy: ${Percents__Rub__Buy}
+      Percents__Rub__Sell: ${Percents__Rub__Sell}
+
+  exchange.db:
+    image: postgres:latest
+    container_name: exchange.db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: Exchange
+    volumes:
+      - exchange_db_data:/var/lib/postgresql/data
+
+volumes:
+  exchange_db_data:
+    driver: local

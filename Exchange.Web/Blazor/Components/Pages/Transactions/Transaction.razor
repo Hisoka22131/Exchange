@@ -1,0 +1,173 @@
+﻿@page "/transaction/{id:guid}"
+
+@using Exchange.Common.Enums
+@using Exchange.Web.Blazor.Services.Transactions
+@using Exchange.Web.Blazor.Services.Transactions.Dto
+@using Exchange.Domain.Enums
+@using Exchange.Web.Blazor.Helper
+@inject TransactionsService TransactionsService
+@inject IToastService ToastService
+
+<PageTitle>Детали транзакции</PageTitle>
+
+<MudBreadcrumbs Items="_items"></MudBreadcrumbs>
+
+<h1>Детали транзакции</h1>
+
+@if (_transaction is null)
+{
+    <MudProgressCircular Indeterminate="true"/>
+}
+else
+{
+    <MudGrid>
+
+        <MudItem xs="12">
+            <MudText Typo="Typo.h6">Идентификатор: @_transaction.Id</MudText>
+        </MudItem>
+        <MudItem xs="12">
+            <MudText>Статус: @_transaction.State</MudText>
+        </MudItem>
+        <MudItem xs="12">
+            <MudText>Дата создания: @_transaction.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</MudText>
+        </MudItem>
+        <MudItem xs="12">
+            <MudText>Дата
+                обновления: @_transaction.UpdatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</MudText>
+        </MudItem>
+
+        <MudItem xs="12" md="6">
+            <MudPaper Class="pa-4">
+                <MudText Typo="Typo.h6">Пользователь отправил:</MudText>
+                <MudText>Валюта отправления: @_transaction.AmountFrom.ToString("G29") @_transaction.CurrencyFrom</MudText>
+
+                @if (_transaction.CurrencyFrom.IsCrypto())
+                {
+                    <MudText>Сеть: @_transaction.CryptoNetworkName (@_transaction.CryptoNetworkCode)</MudText>
+                }
+                else
+                {
+                    <MudText>Сеть: @_transaction.FiatNetworkName (@_transaction.FiatNetworkCode)</MudText>
+                }
+
+                <MudText>Адрес администратора: @_transaction.WalletAddressAdmin</MudText>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" md="6">
+            <MudPaper Class="pa-4">
+                <MudText Typo="Typo.h6">Пользователь должен получить:</MudText>
+                <MudText>Валюта получения: @_transaction.AmountTo.ToString("G29") @_transaction.CurrencyTo</MudText>
+
+                @if (_transaction.CurrencyTo.IsCrypto())
+                {
+                    <MudText>Сеть: @_transaction.CryptoNetworkName (@_transaction.CryptoNetworkCode)</MudText>
+                }
+                else
+                {
+                    <MudText>Сеть: @_transaction.FiatNetworkName (@_transaction.FiatNetworkCode)</MudText>
+                }
+
+                <MudText>Адрес пользователя: @_transaction.WalletAddressUser</MudText>
+                <MudText>Комиссия: @_transaction.Commission.ToString("G29") USDT</MudText>
+                <MudText>Город: @_transaction.City</MudText>
+                <MudText>Номер телефона пользователя: @_transaction.PhoneNumberUser</MudText>
+            </MudPaper>
+        </MudItem>
+
+    </MudGrid>
+
+    <!-- Секция для обновления статуса -->
+    <MudPaper Class="pa-4 mt-4">
+        <MudGrid>
+            <MudItem xs="12" md="3">
+                <MudSelect T="TransactionState" Clearable="false" Label="Статус" SelectAll="false"
+                           MultiSelection="false"
+                           @bind-Value="_newTransactionState" @bind-SelectedValues="_transactionStatesOptions">
+                    @foreach (var state in TransactionHelper.GetValues())
+                    {
+                        <MudSelectItem T="TransactionState" Value="@state">@state.ToString()</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" md="4">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="UpdateStatusAsync">
+                    Обновить статус
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    private TransactionBlazorDto? _transaction;
+    private TransactionState _newTransactionState;
+    private IEnumerable<TransactionState> _transactionStatesOptions { get; set; } = new HashSet<TransactionState>();
+
+    private readonly List<BreadcrumbItem> _items = new()
+    {
+        new("Транзакции", href: "/transactions"),
+        new("Детали транзакции", href: null, disabled: true)
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var transactionResponse = await TransactionsService.GetTransactionByIdAsync(Id);
+
+            if (transactionResponse is null)
+            {
+                ToastService.ShowError("Не удалось загрузить транзакцию.");
+                return;
+            }
+
+            if (!transactionResponse.Ok)
+            {
+                ToastService.ShowError($"Ошибка загрузки транзакции: {transactionResponse.Errors.First().ErrorMessage}");
+                return;
+            }
+
+            _transaction = transactionResponse.Result;
+            _newTransactionState = _transaction.State;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            ToastService.ShowError($"Ошибка при загрузке транзакции: {ex.Message}");
+        }
+    }
+
+    private async Task UpdateStatusAsync()
+    {
+        if (_transaction == null)
+            return;
+
+        if (_transaction.State is TransactionState.Confirmed or TransactionState.Rejected)
+        {
+            ToastService.ShowWarning("Транзакция уже завершена. Нельзя обновить статус.");
+            return;
+        }
+
+        try
+        {
+            var updateResponse = await TransactionsService.UpdateStateAsync(_transaction.Id, _newTransactionState);
+            if (updateResponse is { Ok: true })
+            {
+                ToastService.ShowSuccess("Статус транзакции успешно обновлен.");
+                _transaction.State = _newTransactionState;
+            }
+            else
+            {
+                ToastService.ShowError("Не удалось обновить статус транзакции.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            ToastService.ShowError($"Ошибка при обновлении статуса: {ex.Message}");
+        }
+    }
+
+}

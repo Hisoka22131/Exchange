@@ -1,0 +1,20 @@
+﻿# .NET Core
+bin/
+obj/
+
+# Rider/IntelliJ
+.idea/
+
+# User-specific files
+*.user
+*.userosscache
+*.suo
+*.userprefs
+
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
+.env
+/keys/*

@@ -1,0 +1,161 @@
+﻿@page "/commissions"
+@using System.Globalization
+@using System.Text.RegularExpressions
+@using Exchange.Common.Enums
+@using Exchange.Web.Blazor.Services.Commissions
+@using Exchange.Web.Blazor.Services.Commissions.Dto
+
+@inject CommissionsService CommissionsService;
+@inject IToastService ToastService;
+
+<MudPaper Class="pa-4">
+    <MudText Typo="Typo.h5" Class="mb-2" Color="Color.Success">
+        Диапозон комиссий в валюте: @Currency.USDT
+    </MudText>
+    <MudTable Items="_commissionInfos" RowEditingEnabled="true">
+        <HeaderContent>
+            <MudTh>От</MudTh>
+            <MudTh>До</MudTh>
+            <MudTh>Фиксированная ставка (@Currency.USDT)</MudTh>
+            <MudTh>Процентная ставка</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>
+                <MudTextField @bind-Value="context.AmountFrom" Immediate="true" Variant="Variant.Text"
+                              OnBlur="() => UpdateRanges(context, isFrom: true)"
+                              Error="@IsInvalidAmountFrom(context)"/>
+            </MudTd>
+            <MudTd>
+                <MudTextField @bind-Value="context.AmountTo" Immediate="true" Variant="Variant.Text"
+                              OnBlur="() => UpdateRanges(context, isFrom: false)"
+                              Error="@IsInvalidAmountTo(context)"/>
+            </MudTd>
+            <MudTd>
+                <MudTextField @bind-Value="context.FixedFee" Immediate="true" Variant="Variant.Text"/>
+            </MudTd>
+            <MudTd>
+                <MudTextField @bind-Value="context.PercentFee"
+                              Immediate="true"
+                              Variant="Variant.Text"
+                              Pattern="^0\.\d*$"
+                              InputMode="(InputMode)2"
+                              Adornment="Adornment.End"
+                              AdornmentIcon="Icons.Material.Filled.Percent"
+                              Error="HasError(context.PercentFee)"
+                ErrorText="Только числа с точкой" />
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+
+    <MudItem xs="12" md="4" Class="d-flex justify-content-between mt-3">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="UpdateRanges"
+                   StartIcon="@Icons.Material.Filled.Update" Disabled="@IsUpdateDisabled">
+            Обновить
+        </MudButton>
+    </MudItem>
+</MudPaper>
+
+@code {
+
+    private static bool HasError(decimal? percent)
+    {
+        var formatted = percent?.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
+        return !Regex.IsMatch(formatted, @"^0\.\d*$");
+    }
+    
+    private IList<CommissionBlazorDto> _commissionInfos = new List<CommissionBlazorDto>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetCommissions();
+    }
+
+    private async Task GetCommissions()
+    {
+        try
+        {
+            var commissionsResponse = await CommissionsService.GetCommissionsAsync();
+
+            if (commissionsResponse is null)
+            {
+                ToastService.ShowError("Failed to fetch commissions.");
+                _commissionInfos = Enumerable.Empty<CommissionBlazorDto>().ToList();
+                return;
+            }
+
+            if (!commissionsResponse.Ok)
+            {
+                ToastService.ShowError($"Error fetching commissions: {commissionsResponse.Errors.First().ErrorMessage}");
+                return;
+            }
+
+            _commissionInfos = commissionsResponse.Result
+                .OrderBy(x => x.AmountFrom)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching commissions: {ex.Message}");
+            ToastService.ShowError($"Error fetching commissions: {ex.Message}");
+        }
+    }
+
+    private async Task UpdateRanges()
+    {
+        try
+        {
+            var commissionsResponse = await CommissionsService.UpdateCommissionsAsync(_commissionInfos);
+
+            if (commissionsResponse is null)
+            {
+                ToastService.ShowError("Failed to update commissions.");
+                return;
+            }
+
+            if (!commissionsResponse.Ok)
+            {
+                ToastService.ShowError($"Error updating commissions: {commissionsResponse.Errors.First().ErrorMessage}");
+                return;
+            }
+
+            ToastService.ShowSuccess("Updating commissions was successful!");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating commissions: {ex.Message}");
+            ToastService.ShowError($"Error updating commissions: {ex.Message}");
+        }
+    }
+
+    private void UpdateRanges(CommissionBlazorDto updated, bool isFrom)
+    {
+        var index = _commissionInfos.IndexOf(updated);
+
+        if (index == -1) return;
+
+        if (isFrom && index > 0)
+        {
+            _commissionInfos[index - 1].AmountTo = updated.AmountFrom;
+        }
+        else if (!isFrom && index < _commissionInfos.Count - 1)
+        {
+            _commissionInfos[index + 1].AmountFrom = updated.AmountTo;
+        }
+    }
+
+    private bool IsInvalidAmountFrom(CommissionBlazorDto commission)
+    {
+        var next = _commissionInfos.FirstOrDefault(c => c.AmountFrom == commission.AmountTo);
+        return commission.AmountFrom >= commission.AmountTo || (next != null && commission.AmountFrom > next.AmountTo);
+    }
+
+    private bool IsInvalidAmountTo(CommissionBlazorDto commission)
+    {
+        var previous = _commissionInfos.FirstOrDefault(c => c.AmountTo == commission.AmountFrom);
+        var isInvalid = commission.AmountTo <= commission.AmountFrom || 
+                        (previous != null && commission.AmountTo < previous.AmountFrom);
+        return isInvalid;
+    }
+
+    private bool IsUpdateDisabled => _commissionInfos.Any(c => IsInvalidAmountFrom(c) || IsInvalidAmountTo(c) || HasError(c.PercentFee));
+}
